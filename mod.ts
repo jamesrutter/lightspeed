@@ -8,10 +8,16 @@ class LightspeedClient {
   private refreshToken: string | null = null;
   private tokenExpiry: number | null = null;
 
-  constructor(clientID: string, clientSecret: string, refreshToken: string, accountID: string) {
+  constructor(clientID: string, clientSecret: string, refreshToken: string) {
     this.clientID = clientID;
     this.clientSecret = clientSecret;
     this.refreshToken = refreshToken;
+    this.accountID = '';
+  }
+
+  private async initializeClient() {
+    await this.getAccessToken();
+    await this.getAccountInformation();
   }
 
   private async getAccessToken(): Promise<LightspeedToken | null> {
@@ -120,6 +126,37 @@ class LightspeedClient {
       return data.Category as Category[];
     } catch (error) {
       console.error('Error fetching categories:', error);
+      return null;
+    }
+  }
+
+  async getItems(): Promise<Item[] | null> {
+    if (this.accountID === null) await this.getAccountInformation();
+    if (this.accountID === null) return null;
+
+    const itemsUrl = `https://api.lightspeedapp.com/API/V3/Account/${this.accountID}/Item.json`;
+    const accessToken = await this.getValidAccessToken();
+
+    if (accessToken === null) {
+      return null;
+    }
+
+    try {
+      const response = await fetch(itemsUrl, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.Item as Item[];
+    } catch (error) {
+      console.error('Error fetching items:', error);
       return null;
     }
   }

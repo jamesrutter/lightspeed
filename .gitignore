@@ -1,1 +1,47 @@
+# Ignore node_modules (in case you use npm for some reason)
+node_modules/
+
+# Ignore deno dependencies directory
+deno_dir/
+
+# Ignore environment variables file
 .env
+
+# Ignore log files
+*.log
+
+# Ignore any build artifacts or binaries
+*.out
+*.obj
+*.exe
+*.dll
+*.class
+
+# Ignore local configuration files
+*.local
+
+# Ignore temporary files
+*.tmp
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Ignore lock files
+yarn.lock
+package-lock.json
+
+# Ignore IDE/editor specific files
+.vscode/
+.idea/
+*.iml
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Ignore test coverage results
+coverage/
+
+# Ignore Mac system files
+.DS_Store

@@ -3,7 +3,7 @@ import type { Account, Item, Category, QueryParams, LightspeedToken } from './ty
 export class LightspeedClient {
   private clientID: string;
   private clientSecret: string;
-  private accountID: string;
+  private accountID: string | null = null;
   private accessToken: string | null = null;
   private refreshToken: string | null = null;
   private tokenExpiry: number | null = null;
@@ -12,12 +12,16 @@ export class LightspeedClient {
     this.clientID = clientID;
     this.clientSecret = clientSecret;
     this.refreshToken = refreshToken;
-    this.accountID = '';
   }
 
-  private async initializeClient() {
-    await this.getAccessToken();
-    await this.getAccountInformation();
+  static async create(clientID: string, clientSecret: string, refreshToken: string): Promise<LightspeedClient> {
+    const client = new LightspeedClient(clientID, clientSecret, refreshToken);
+    await client.initialize();
+    return client;
+  }
+
+  private async initialize(): Promise<void> {
+    this.accountID = await this.getAccountID();
   }
 
   /**
@@ -105,6 +109,34 @@ export class LightspeedClient {
   }
 
   /**
+   * Get account id from the Lightspeed API
+   * @returns Account ID (string) or null
+   */
+  async getAccountID(): Promise<string | null> {
+    const accountUrl = 'https://api.lightspeedapp.com/API/V3/Account.json';
+    const accessToken = await this.getValidAccessToken();
+
+    if (accessToken === null) return null;
+
+    try {
+      const response = await fetch(accountUrl, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+
+      const data = await response.json();
+      return data.Account.accountID;
+    } catch (error) {
+      console.error('Error fetching account information:', error);
+      return null;
+    }
+  }
+
+  /**
    * Get categories from the Lightspeed API
    * @returns Categories
    */
@@ -165,9 +197,7 @@ export class LightspeedClient {
     };
 
     const queryString = new URLSearchParams(params as Record<string, string>).toString();
-    console.log('queryString:', queryString);
     const itemsUrl = `https://api.lightspeedapp.com/API/V3/Account/${this.accountID}/Item.json?${queryString}`;
-    console.log('itemsUrl:', itemsUrl);
 
     try {
       const response = await fetch(itemsUrl, {
@@ -222,8 +252,46 @@ export class LightspeedClient {
     }
   }
 
-  // TODO: Implement getItemsByCategory method
-  // async getItemsByCategory(categoryID: string, options: QueryParams = {}): Promise<Item[] | null> {}
+  async getItemsByCategory(categoryID: string, options: QueryParams = {}): Promise<Item[] | null> {
+    if (this.accountID === null) await this.getAccountInformation();
+    if (this.accountID === null) return null;
+
+    const accessToken = await this.getValidAccessToken();
+    if (accessToken === null) return null;
+
+    const defaultRelations = ['Category', 'ItemAttributes'];
+    const relations = options.load_relations ? JSON.parse(options.load_relations) : defaultRelations;
+
+    const params: QueryParams = {
+      ...options,
+      load_relations: JSON.stringify(relations),
+      'Category.categoryID': categoryID,
+    };
+
+    const queryString = new URLSearchParams(params as Record<string, string>).toString();
+    console.log('queryString:', queryString);
+    const itemsUrl = `https://api.lightspeedapp.com/API/V3/Account/${this.accountID}/Item.json?${queryString}`;
+    console.log('itemsUrl:', itemsUrl);
+
+    try {
+      const response = await fetch(itemsUrl, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.Item as Item[];
+    } catch (error) {
+      console.error('Error fetching items by category:', error);
+      return null;
+    }
+  }
 }
 
 export default LightspeedClient;

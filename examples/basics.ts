@@ -1,27 +1,39 @@
-import { load } from 'https://deno.land/std@0.224.0/dotenv/mod.ts';
-import LightspeedClient from '../src/lightspeed.ts';
+import { load } from '@std/dotenv';
 import type { QueryParams } from '../src/types.d.ts';
+import LightspeedClient from '../src/lightspeed.ts';
 
-// Load environment variables from .env file
 const env = await load();
-const clientID = env.CLIENT_ID;
-const clientSecret = env.CLIENT_SECRET;
-const refreshToken = env.REFRESH_TOKEN;
+const clientID = env.LIGHTSPEED_CLIENT_ID;
+const clientSecret = env.LIGHTSPEED_CLIENT_SECRET;
+const refreshToken = env.LIGHTSPEED_REFRESH_TOKEN;
 
-const ls = new LightspeedClient(clientID, clientSecret, refreshToken);
+// Setup a new lightspeed client and initialize it with the account ID
+const ls = await LightspeedClient.create(clientID, clientSecret, refreshToken);
 
 async function main() {
-  const account = await ls.getAccountInformation();
-  console.log('Account:', account);
-  const categories = await ls.getCategories();
-  console.log('Categories:', categories);
+  /* 1. Get basic account information */
+  // const account = await ls.getAccountInformation();
+  // console.log('Account:', account);
 
-  const options: QueryParams = {
-    limit: '2',
-    load_relations: '["Category", "ItemAttributes"]',
-  };
-  const items = await ls.getItems(options);
-  console.log('Items:', items);
+  /* 2. Get all the categories */
+  // const categories = await ls.getCategories();
+  // console.log('Categories:', categories);
+
+  /* 3. Get all the items */
+  // const items = await ls.getItems();
+  // console.log('Items:', items);
+
+  /* 4. Get items with custom query parameters */
+  // const options: QueryParams = {
+  //   limit: '2',
+  //   load_relations: '["Category", "ItemAttributes"]',
+  // };
+  // const items = await ls.getItems(options);
+  // console.log('Items:', items);
+
+  /* 5. Get items by category */
+  const fablabItems = await ls.getItemsByCategory('116');
+  console.log('Fab Lab Items:', fablabItems);
 }
 
 main();

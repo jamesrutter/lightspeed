@@ -1,4 +1,5 @@
 import type { Account, Item, Category, QueryParams, LightspeedToken } from './types.d.ts';
+import { LightspeedError, LightspeedAuthError } from './errors.ts';
 
 export class LightspeedClient {
   private clientID: string;
@@ -45,13 +46,12 @@ export class LightspeedClient {
         body: JSON.stringify(payload),
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
+      if (!response.ok)
+        throw new LightspeedAuthError(`HTTP error! Status: ${response.status} - ${response.statusText}`);
 
       const data: LightspeedToken = await response.json();
       this.accessToken = data.access_token;
-      this.tokenExpiry = Date.now() + data.expires_in * 1000; // Convert seconds to milliseconds
+      this.tokenExpiry = Date.now() + data.expires_in * 1000 - 30000; // 30 seconds before expiry
       return data;
     } catch (error) {
       console.error('Error fetching access token:', error);

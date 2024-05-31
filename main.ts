@@ -1,6 +1,7 @@
 // import { load } from 'https://deno.land/x/denv/mod.ts';
 import { load } from 'https://deno.land/std@0.224.0/dotenv/mod.ts';
 import LightspeedClient from './mod.ts';
+import { QueryParams } from './types.d.ts';
 
 // Learn more at https://deno.land/manual/examples/module_metadata#concepts
 // if (import.meta.main) {}
@@ -15,13 +16,16 @@ const ls = new LightspeedClient(clientID, clientSecret, refreshToken);
 
 async function main() {
   const account = await ls.getAccountInformation();
-  console.log('Account:', account);
 
   const categories = await ls.getCategories();
-  console.log('Categories:', categories);
 
-  const items = await ls.getItems();
-  console.log('Items:', items);
+  const options: QueryParams = {
+    limit: '2',
+    load_relations: '["Category", "ItemAttributes"]',
+  };
+
+  const items = await ls.getItems(options);
+  console.log(items ? items : 'No items found');
 }
 
 main();

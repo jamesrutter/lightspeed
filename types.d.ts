@@ -6,8 +6,28 @@ export interface QueryParams {
   limit?: string;
   sort?: string;
   timeStamp?: string;
+  load_relations?: string;
   [key: string]: string | undefined; // Allow additional string parameters
 }
+
+/* LS API: Item relations:
+    Category
+    TaxClass
+    ItemAttributes
+    ItemAttributes.ItemAttributeSet
+    Manufacturer
+    Note
+    Images
+    ItemShops
+    ItemVendorNums
+    ItemComponents
+    ItemECommerce
+    TagRelations
+    TagRelations.Tag
+    CustomFieldValues
+    CustomFieldValues.value
+    ItemPrices
+    */
 
 export interface LightspeedToken {
   access_token: string;

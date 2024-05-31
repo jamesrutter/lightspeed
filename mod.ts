@@ -130,16 +130,25 @@ class LightspeedClient {
     }
   }
 
-  async getItems(): Promise<Item[] | null> {
+  async getItems(options: QueryParams = {}): Promise<Item[] | null> {
     if (this.accountID === null) await this.getAccountInformation();
     if (this.accountID === null) return null;
 
-    const itemsUrl = `https://api.lightspeedapp.com/API/V3/Account/${this.accountID}/Item.json`;
     const accessToken = await this.getValidAccessToken();
+    if (accessToken === null) return null;
 
-    if (accessToken === null) {
-      return null;
-    }
+    const defaultRelations = ['Category', 'ItemAttributes'];
+    const relations = options.load_relations ? JSON.parse(options.load_relations) : defaultRelations;
+
+    const params: QueryParams = {
+      ...options,
+      load_relations: JSON.stringify(relations),
+    };
+
+    const queryString = new URLSearchParams(params as Record<string, string>).toString();
+    console.log('queryString:', queryString);
+    const itemsUrl = `https://api.lightspeedapp.com/API/V3/Account/${this.accountID}/Item.json?${queryString}`;
+    console.log('itemsUrl:', itemsUrl);
 
     try {
       const response = await fetch(itemsUrl, {

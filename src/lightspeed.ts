@@ -1,6 +1,6 @@
-import type { Account, Item, Category, QueryParams, LightspeedToken } from '../types.d.ts';
+import type { Account, Item, Category, QueryParams, LightspeedToken } from './types.d.ts';
 
-class LightspeedClient {
+export class LightspeedClient {
   private clientID: string;
   private clientSecret: string;
   private accountID: string;

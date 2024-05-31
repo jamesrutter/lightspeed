@@ -1,4 +1,4 @@
-import { Account, Item, Category, QueryParams, LightspeedToken } from '../types.d.ts';
+import type { Account, Item, Category, QueryParams, LightspeedToken } from '../types.d.ts';
 
 class LightspeedClient {
   private clientID: string;

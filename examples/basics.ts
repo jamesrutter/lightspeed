@@ -1,6 +1,6 @@
 import { load } from 'https://deno.land/std@0.224.0/dotenv/mod.ts';
 import LightspeedClient from '../src/lightspeed.ts';
-import { QueryParams } from '../types.d.ts';
+import type { QueryParams } from '../types.d.ts';
 
 // Load environment variables from .env file
 const env = await load();

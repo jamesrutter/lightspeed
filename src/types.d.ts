@@ -70,4 +70,21 @@ export interface Item {
     ItemPrice: ItemPrice[];
   };
   Category?: Category;
+  ItemShops?: {
+    ItemShop: ItemShop[];
+  };
+}
+
+export interface ItemShop {
+  itemShopID: string;
+  qoh: string;
+  sellable: string;
+  backorder: string;
+  componentQoh: string;
+  componentBackorder: string;
+  reorderPoint: string;
+  reorderLevel: string;
+  timeStamp: string;
+  itemID: string;
+  shopID: string;
 }

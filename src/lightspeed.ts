@@ -1,6 +1,9 @@
 import type { Account, Item, Category, QueryParams, LightspeedToken } from './types.d.ts';
 import { LightspeedError, LightspeedAuthError } from './errors.ts';
 
+/**
+ * LightspeedClient class to interact with Lightspeed API.
+ */
 export class LightspeedClient {
   private clientID: string;
   private clientSecret: string;
@@ -9,24 +12,44 @@ export class LightspeedClient {
   private refreshToken: string | null = null;
   private tokenExpiry: number | null = null;
 
+  /**
+   * Creates an instance of LightspeedClient.
+   * @param {string} clientID - The client ID for the Lightspeed API.
+   * @param {string} clientSecret - The client secret for the Lightspeed API.
+   * @param {string} refreshToken - The refresh token for the Lightspeed API.
+   */
   constructor(clientID: string, clientSecret: string, refreshToken: string) {
     this.clientID = clientID;
     this.clientSecret = clientSecret;
     this.refreshToken = refreshToken;
   }
 
+  /**
+   * Creates and initializes an instance of LightspeedClient.
+   * @param {string} clientID - The client ID for the Lightspeed API.
+   * @param {string} clientSecret - The client secret for the Lightspeed API.
+   * @param {string} refreshToken - The refresh token for the Lightspeed API.
+   * @returns {Promise<LightspeedClient>} An initialized instance of LightspeedClient.
+   */
   static async create(clientID: string, clientSecret: string, refreshToken: string): Promise<LightspeedClient> {
     const client = new LightspeedClient(clientID, clientSecret, refreshToken);
     await client.initialize();
+    console.log('client:', client);
     return client;
   }
+
+  /**
+   * Initializes the LightspeedClient instance by fetching the account ID.
+   * @returns {Promise<void>}
+   */
 
   private async initialize(): Promise<void> {
     this.accountID = await this.getAccountID();
   }
 
   /**
-   * Get an access token from the Lightspeed API
+   * Retrieves an access token from the Lightspeed API.
+   * @returns {Promise<LightspeedToken | null>} The access token data or null if the request fails.
    */
   private async getAccessToken(): Promise<LightspeedToken | null> {
     const tokenUrl = 'https://cloud.lightspeedapp.com/oauth/access_token.php';
@@ -60,7 +83,8 @@ export class LightspeedClient {
   }
 
   /**
-   * Get a valid access token, either by refreshing the current token or getting a new one
+   * Retrieves a valid access token, either by refreshing the current token or getting a new one.
+   * @returns {Promise<string | null>} The valid access token or null if the request fails.
    */
   private async getValidAccessToken(): Promise<string | null> {
     if (this.accessToken === null || this.tokenExpiry === null || Date.now() > this.tokenExpiry) {
@@ -72,8 +96,8 @@ export class LightspeedClient {
   }
 
   /**
-   * Get account information from the Lightspeed API
-   * @returns Account information
+   * Retrieves account information from the Lightspeed API.
+   * @returns {Promise<Account | null>} The account information or null if the request fails.
    */
   async getAccountInformation(): Promise<Account | null> {
     const accountUrl = 'https://api.lightspeedapp.com/API/V3/Account.json';
@@ -109,8 +133,8 @@ export class LightspeedClient {
   }
 
   /**
-   * Get account id from the Lightspeed API
-   * @returns Account ID (string) or null
+   * Retrieves account ID from the Lightspeed API.
+   * @returns {Promise<string | null>} The account ID or null if the request fails.
    */
   async getAccountID(): Promise<string | null> {
     const accountUrl = 'https://api.lightspeedapp.com/API/V3/Account.json';
@@ -137,8 +161,8 @@ export class LightspeedClient {
   }
 
   /**
-   * Get categories from the Lightspeed API
-   * @returns Categories
+   * Retrieves categories from the Lightspeed API.
+   * @returns {Promise<Category[] | null>} The categories or null if the request fails.
    */
   async getCategories(): Promise<Category[] | null> {
     if (this.accountID === null) {
@@ -177,9 +201,25 @@ export class LightspeedClient {
   }
 
   /**
-   * Get items from the Lightspeed API
-   * @param options Query parameters
-   * @returns Items
+   * Retrieves items from the Lightspeed API.
+   * @param {QueryParams} [options={}] - The query parameters for the request.
+   * @ {Promise<Item[] | null>} The items or null if the request fails.
+   *
+   * @example
+   * ```ts
+   * const ls = await LightspeedClient.create(clientID, clientSecret, refreshToken);
+   * const items = await ls.getItems(); // get all items
+   * console.log('Items:', items);
+   *
+   * const options: QueryParams = {
+   * const options = {
+   *   limit: 10,
+   *   sort: '-timeStamp',
+   * };
+   * const items = await ls.getItems(options); // get 10 most recent items
+   * console.log('Items:', items);
+   * ```
+   *
    */
   async getItems(options: QueryParams = {}): Promise<Item[] | null> {
     if (this.accountID === null) await this.getAccountInformation();
@@ -188,7 +228,7 @@ export class LightspeedClient {
     const accessToken = await this.getValidAccessToken();
     if (accessToken === null) return null;
 
-    const defaultRelations = ['Category', 'ItemAttributes'];
+    const defaultRelations = ['Category', 'ItemAttributes', 'ItemShops'];
     const relations = options.load_relations ? JSON.parse(options.load_relations) : defaultRelations;
 
     const params: QueryParams = {
@@ -198,7 +238,7 @@ export class LightspeedClient {
 
     const queryString = new URLSearchParams(params as Record<string, string>).toString();
     const itemsUrl = `https://api.lightspeedapp.com/API/V3/Account/${this.accountID}/Item.json?${queryString}`;
-
+    console.log(itemsUrl);
     try {
       const response = await fetch(itemsUrl, {
         method: 'GET',
@@ -220,9 +260,9 @@ export class LightspeedClient {
   }
 
   /**
-   * Get an item by ID from the Lightspeed API
-   * @param itemID Item ID
-   * @returns Item
+   * Retrieves an item by ID from the Lightspeed API.
+   * @param {string} itemID - The item ID.
+   * @returns {Promise<Item | null>} The item or null if the request fails.
    */
   async getItemByID(itemID: string): Promise<Item | null> {
     if (this.accountID === null) await this.getAccountInformation();
@@ -252,6 +292,19 @@ export class LightspeedClient {
     }
   }
 
+  /**
+   *  Retrieves items by category from the Lightspeed API.
+   * @param {string} categoryID - The category ID.
+   * @param {QueryParams} [options={}] - The query parameters for the request.
+   * @returns {Promise<Item[] | null>} The items or null if the request fails.
+   * @example
+   * ```ts
+   * const ls = await LightspeedClient.create(clientID, clientSecret, refreshToken);
+   * const categoryID = '116';
+   * const items = await ls.getItemsByCategory(categoryID);
+   * console.log('Items:', items);
+   * ```
+   */
   async getItemsByCategory(categoryID: string, options: QueryParams = {}): Promise<Item[] | null> {
     if (this.accountID === null) await this.getAccountInformation();
     if (this.accountID === null) return null;
@@ -259,7 +312,7 @@ export class LightspeedClient {
     const accessToken = await this.getValidAccessToken();
     if (accessToken === null) return null;
 
-    const defaultRelations = ['Category', 'ItemAttributes'];
+    const defaultRelations = ['Category', 'ItemAttributes', 'ItemShops'];
     const relations = options.load_relations ? JSON.parse(options.load_relations) : defaultRelations;
 
     const params: QueryParams = {

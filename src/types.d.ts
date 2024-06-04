@@ -88,3 +88,51 @@ export interface ItemShop {
   itemID: string;
   shopID: string;
 }
+
+export interface Sale {
+  saleID: string;
+  timeStamp: string;
+  discountPercent: string;
+  completed: string;
+  archived: string;
+  voided: string;
+  enablePromotions: string;
+  isTaxInclusive: string;
+  createTime: string;
+  updatetime: string;
+  completeTime: string;
+  referenceNumber: string;
+  referenceNumberSource: string;
+  tax1Rate: string;
+  tax2Rate: string;
+  change: string;
+  tipEnabled: string;
+  receiptPreference: string;
+  displayableSubtotal: string;
+  ticketNumber: string;
+  calcDiscount: string;
+  calcTotal: string;
+  calcSubtotal: string;
+  calcTaxable: string;
+  calcNonTaxable: string;
+  calcAvgCost: string;
+  calcFIFOCost: string;
+  calcTax1: string;
+  calcTax2: string;
+  calcPayments: string;
+  calcTips: string;
+  total: string;
+  totalDue: string;
+  displayableTotal: string;
+  balance: string;
+  customerID: string;
+  discountID: string;
+  employeeID: string;
+  tipEmployeeID: string;
+  quoteID: string;
+  registerID: string;
+  shipToID: string;
+  shopID: string;
+  taxCategoryID: string;
+  taxTotal: string;
+}

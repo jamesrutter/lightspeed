@@ -1,5 +1,5 @@
-import type { Account, Item, Category, QueryParams, LightspeedToken } from './types.d.ts';
-import { LightspeedError, LightspeedAuthError } from './errors.ts';
+import type { Account, Item, Sale, Category, QueryParams, LightspeedToken } from './types.d.ts';
+import { LightspeedAuthError } from './errors.ts';
 
 /**
  * LightspeedClient class to interact with Lightspeed API.
@@ -11,6 +11,7 @@ export class LightspeedClient {
   private accessToken: string | null = null;
   private refreshToken: string | null = null;
   private tokenExpiry: number | null = null;
+  private enableLogging: boolean;
 
   /**
    * Creates an instance of LightspeedClient.
@@ -18,10 +19,11 @@ export class LightspeedClient {
    * @param {string} clientSecret - The client secret for the Lightspeed API.
    * @param {string} refreshToken - The refresh token for the Lightspeed API.
    */
-  constructor(clientID: string, clientSecret: string, refreshToken: string) {
+  constructor(clientID: string, clientSecret: string, refreshToken: string, enableLogging: boolean = false) {
     this.clientID = clientID;
     this.clientSecret = clientSecret;
     this.refreshToken = refreshToken;
+    this.enableLogging = enableLogging;
   }
 
   /**
@@ -34,7 +36,7 @@ export class LightspeedClient {
   static async create(clientID: string, clientSecret: string, refreshToken: string): Promise<LightspeedClient> {
     const client = new LightspeedClient(clientID, clientSecret, refreshToken);
     await client.initialize();
-    console.log('client:', client);
+    client.log('LightspeedClient initialized');
     return client;
   }
 
@@ -45,6 +47,12 @@ export class LightspeedClient {
 
   private async initialize(): Promise<void> {
     this.accountID = await this.getAccountID();
+  }
+
+  private log(message: string): void {
+    if (this.enableLogging) {
+      console.log(`[LightspeedClient] ${message}`);
+    }
   }
 
   /**
@@ -342,6 +350,45 @@ export class LightspeedClient {
       return data.Item as Item[];
     } catch (error) {
       console.error('Error fetching items by category:', error);
+      return null;
+    }
+  }
+
+  async getRecentSales(options: QueryParams = {}): Promise<Sale[] | null> {
+    if (this.accountID === null) await this.getAccountInformation();
+    if (this.accountID === null) return null;
+
+    const accessToken = await this.getValidAccessToken();
+    if (accessToken === null) return null;
+
+    const defaultRelations = ['Customer', 'Quote'];
+    const relations = options.load_relations ? JSON.parse(options.load_relations) : defaultRelations;
+
+    const params: QueryParams = {
+      ...options,
+      sort: '-timeStamp',
+      load_relations: JSON.stringify(relations),
+    };
+
+    const queryString = new URLSearchParams(params as Record<string, string>).toString();
+    const itemsUrl = `https://api.lightspeedapp.com/API/V3/Account/${this.accountID}/Sale.json?${queryString}`;
+    console.log(itemsUrl);
+    try {
+      const response = await fetch(itemsUrl, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.Sale as Sale[];
+    } catch (error) {
+      console.error('Error fetching items:', error);
       return null;
     }
   }

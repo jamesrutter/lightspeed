@@ -246,7 +246,6 @@ export class LightspeedClient {
 
     const queryString = new URLSearchParams(params as Record<string, string>).toString();
     const itemsUrl = `https://api.lightspeedapp.com/API/V3/Account/${this.accountID}/Item.json?${queryString}`;
-    console.log(itemsUrl);
     try {
       const response = await fetch(itemsUrl, {
         method: 'GET',
@@ -330,9 +329,7 @@ export class LightspeedClient {
     };
 
     const queryString = new URLSearchParams(params as Record<string, string>).toString();
-    console.log('queryString:', queryString);
     const itemsUrl = `https://api.lightspeedapp.com/API/V3/Account/${this.accountID}/Item.json?${queryString}`;
-    console.log('itemsUrl:', itemsUrl);
 
     try {
       const response = await fetch(itemsUrl, {
@@ -372,7 +369,6 @@ export class LightspeedClient {
 
     const queryString = new URLSearchParams(params as Record<string, string>).toString();
     const itemsUrl = `https://api.lightspeedapp.com/API/V3/Account/${this.accountID}/Sale.json?${queryString}`;
-    console.log(itemsUrl);
     try {
       const response = await fetch(itemsUrl, {
         method: 'GET',

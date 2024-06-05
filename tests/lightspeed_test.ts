@@ -1,12 +1,12 @@
-// import { load } from '@std/dotenv';
+import { load } from '@std/dotenv';
 import { assertEquals } from 'https://deno.land/std@0.224.0/assert/mod.ts';
 import { LightspeedClient } from '../src/lightspeed.ts';
+
+await load({ export: true });
 
 const clientID = Deno.env.get('LIGHTSPEED_CLIENT_ID')!;
 const clientSecret = Deno.env.get('LIGHTSPEED_CLIENT_SECRET')!;
 const refreshToken = Deno.env.get('LIGHTSPEED_REFRESH_TOKEN')!;
-
-console.log(clientID, clientSecret, refreshToken);
 
 Deno.test('LightspeedClient should fetch account information', async () => {
   const client = await LightspeedClient.create(clientID, clientSecret, refreshToken);
@@ -40,8 +40,7 @@ Deno.test('LightspeedClient should fetch items', async () => {
 
 Deno.test('LightspeedClient should fetch recent sales', async () => {
   const client = await LightspeedClient.create(clientID, clientSecret, refreshToken);
-  const recentSales = await client.getRecentSales();
-  console.log(recentSales);
+  const recentSales = await client.getRecentSales({ limit: '5' });
   assertEquals(recentSales !== null, true);
   if (recentSales) {
     assertEquals(Array.isArray(recentSales), true);

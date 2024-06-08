@@ -131,6 +131,15 @@ export class LightspeedClient {
       const account: Account = {
         accountID: data.Account.accountID,
         name: data.Account.name,
+        planID: data.Account.planID,
+        timezone: data.Account.timezone,
+        catalogTime: data.Account.catalogTime,
+        currency: data.Account.currency,
+        countryCode: data.Account.countryCode,
+        type: data.Account.type,
+        resellerID: data.Account.resellerID,
+        createTime: data.Account.createTime,
+        timeStamp: data.Account.timeStamp,
       };
       this.accountID = account.accountID;
       return account;
@@ -351,6 +360,11 @@ export class LightspeedClient {
     }
   }
 
+  /**
+   * Retrieves the most recent sales from Lightspeed API.
+   * @param {QueryParams} [options={}] - The query parameters for the request.
+   * @returns {Promise<Sale[]>} A promise that resolves to an array of the most recent sales.
+   */
   async getRecentSales(options: QueryParams = {}): Promise<Sale[] | null> {
     if (this.accountID === null) await this.getAccountInformation();
     if (this.accountID === null) return null;
